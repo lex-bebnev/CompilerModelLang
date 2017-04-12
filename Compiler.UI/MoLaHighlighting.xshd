@@ -1,0 +1,51 @@
+﻿<?xml version="1.0"?> 
+
+<SyntaxDefinition name="MoLa" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  
+  
+  <Color name="Comment" foreground="Green" />
+	<Color name="Keywords" foreground="Blue" />
+	<Color name="BasicTypes" foreground="DarkCyan" />
+
+  <RuleSet>
+  
+  <Span color="Comment" multiline="true" begin="\\\*" end="\*\\" />
+
+    
+  
+  <Keywords color="BasicTypes">
+			<Word>integer</Word>
+			<Word>boolean</Word>
+			<Word>real</Word>
+	</Keywords>
+
+    <Keywords color="Keywords">
+
+			<Word>else</Word>
+      <Word>dim</Word>
+			<Word>false</Word>
+			<Word>if</Word>
+			<Word>for</Word>
+      <Word>to</Word>
+      <Word>do</Word>
+      <Word>as</Word>
+			<Word>while</Word>
+			<Word>not</Word>
+			<Word>true</Word>
+      <Word>read</Word>
+      <Word>write</Word>
+		</Keywords>
+    
+    <Rule foreground="DarkBlue">
+				  \b\d[0-9A-Fa-f]*[h,H]\b # hex number
+				| \b\d{1,}[d,D]{0,}\b     # dec number
+        | \b[0-7]+[o,O]\b         # oct number
+        | \b[0-1]+[b,B]\b         # bin number 
+				(    \d+(\.[0-9]+)?   #number with optional floating point
+				|    \.[0-9]+         #or just starting with floating point
+				)
+				([eE][+-]?[0-9]+)? # optional exponent
+		</Rule>
+    
+  </RuleSet>
+</SyntaxDefinition>
