@@ -15,68 +15,129 @@
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{DynamicResource MaterialDesignFont}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="720" Width="1280">
-    <Grid >
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="0.4*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="150"/>
-        </Grid.RowDefinitions>
-        <dragablz:TabablzControl Margin="10" 
-                                 Grid.Row="1" 
-                                 Grid.Column="0" 
-                                 Background="{DynamicResource MaterialDesignPaper}" 
-                                 FontFamily="{DynamicResource MaterialDesignFont}"
-                                 FontSize="14"
-                                 Foreground="{DynamicResource MaterialDesignBody}"
-                                 ShowDefaultCloseButton="True">
-            
-            <dragablz:TabablzControl.InterTabController>
-                <dragablz:InterTabController />
-            </dragablz:TabablzControl.InterTabController>
-            
-            <TabItem Header="Code" IsSelected="True">
+        Title="Compiler Model Language" Height="720" Width="1280">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.CheckBox.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ListBox.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.PopupBox.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.RadioButton.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBlock.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.ToggleButton.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open File">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="OpenInApp" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_New">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="OpenInNew" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Save">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ContentSave" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_Exit">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ExitToApp" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                
+            </MenuItem>
+            <MenuItem Header="_Build">
+                <MenuItem Header="_Compile">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ArrowDownBold" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Compile and _Run">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Play" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_View Help">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Help" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="_About">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="InformationOutline" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <Grid >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="0.35*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="150"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" 
+                        Grid.Column="0"
+                        Orientation="Horizontal" Margin="8">
+
+                <Button Name="CompileBtn"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Margin="0 0 8 0"
+                        Click="Compile">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ArrowDownBold" Height="24" Width="24" />
+                    </StackPanel>
+                </Button>
+
+                <Button Name="CompileRunBtn"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Margin="0 0 8 0"
+                        Click="Compile">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Play" Height="24" Width="24" />
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+
+
+            <GroupBox Grid.Row="1" Grid.Column="0" Header="Code" Margin="5">
                 <avalonedit:TextEditor Name="TextEditor"
-                               Grid.Column="0" Grid.Row="0"
-                               Background="{DynamicResource MaterialDesignPaper}" 
-                               FontFamily="{DynamicResource MaterialDesignFont}"
-                               FontSize="16"
-                               Foreground="{DynamicResource MaterialDesignBody}"
-                               ShowLineNumbers="True"
-                               HorizontalScrollBarVisibility="Hidden"
-                               VerticalScrollBarVisibility="Auto"
-                               SyntaxHighlighting="MoLa Highlighting"/>
-            </TabItem>
+                           Grid.Column="0" Grid.Row="0"
+                           Background="{DynamicResource MaterialDesignPaper}" 
+                           FontFamily="{DynamicResource MaterialDesignFont}"
+                           FontSize="16"
+                           Foreground="{DynamicResource MaterialDesignBody}"
+                           ShowLineNumbers="True"
+                           HorizontalScrollBarVisibility="Hidden"
+                           VerticalScrollBarVisibility="Auto"
+                           SyntaxHighlighting="MoLa Highlighting"/>
+            </GroupBox>
+            <GroupBox Grid.Row="1" Grid.Column="1" Header="Abstract Sintax Tree" Margin="5">
+                <TreeView Name="sntxTreeView" />
+            </GroupBox>
 
-            <!--<TabItem Header ="Syntax Tree">
-                <TreeView Name="sntxTreeView"/>
-            </TabItem>-->
-        </dragablz:TabablzControl>
-<!--        <TabControl Grid.Column="1" Grid.Row="0" 
-                    Background="{DynamicResource MaterialDesignPaper}" 
-                    FontFamily="{DynamicResource MaterialDesignFont}"
-                    FontSize="14"
-                    Foreground="{DynamicResource MaterialDesignBody}">
-            
-        </TabControl>-->
-
-        <TreeView Name="sntxTreeView" Grid.Row="1" Grid.Column="1"/>
-
-        <Button Name="CompileBtn"
-                Grid.Row="0" 
-                Grid.Column="0" 
-                Content="Compile" 
-                Width="150" Height="25" Margin="5"
-                Background="{DynamicResource MaterialDesignFlatButtonClick}"
-                Foreground="{DynamicResource MaterialDesignDarkForeground}"
-                FontFamily="{DynamicResource MaterialDesignFont}"
-                Click="Compile"/>
-
-        <TextBox Name="Errors" Grid.Row="2" Grid.Column="0" VerticalScrollBarVisibility="Auto" />
-        
-    </Grid>
+            <GroupBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Header="Errors" Margin="5">
+                <TextBlock x:Name="Errors"/>
+            </GroupBox>
+        </Grid>
+    </DockPanel>
 </Window>

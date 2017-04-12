@@ -16,9 +16,12 @@ namespace CompilerModelTest.Visitors
             Node programm = new ProgrammNode();
             programm.Name = "programm";
 
-            foreach (var contextChild in context.children)
+            if (context.children != null)
             {
-                programm.Nodes.Add(Visit(contextChild));
+                foreach (var contextChild in context.children)
+                {
+                    programm.Nodes.Add(Visit(contextChild));
+                }
             }
 
             return programm;

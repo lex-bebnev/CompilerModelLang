@@ -49,6 +49,7 @@ namespace Compiler.UI
 
         private IVocabulary vocabulary;
 
+
         public void Compile(object sender, RoutedEventArgs e)
         {
             Errors.Text = "";
