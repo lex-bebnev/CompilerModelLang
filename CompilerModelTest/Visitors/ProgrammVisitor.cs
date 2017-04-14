@@ -64,8 +64,6 @@ namespace CompilerModelTest.Visitors
             catch (ArgumentException e)
             {
                 Errors.Add(new AlreadyDeclaredError(e.ParamName,0,null,null));
-                //Console.WriteLine("ERROR:");
-                //Console.WriteLine(e.Message);
             }
             Console.WriteLine("}");
             return base.VisitDeclaration(context);
@@ -159,9 +157,6 @@ namespace CompilerModelTest.Visitors
                     resultType = typeof(bool);
                     break;
             }
-            //Console.WriteLine(context.op.ToString());
-            //Console.WriteLine(context.left.GetText());
-            //Console.WriteLine(context.right.GetText());
             return new ValueObjectDef() { Type = resultType };
         }
         public override ValueObjectDef VisitPrimary(ModelLParser.PrimaryContext context)
@@ -182,11 +177,9 @@ namespace CompilerModelTest.Visitors
                 {
                     e.ToString();
                     Errors.Add(new UndefinedIdError(context.identificator().GetText(), 0, context.identificator().start.Line, context.identificator().start.Column));
-                    //Console.WriteLine("\t\tError: Varible not declared: " + context.identificator().GetText());
+                   
                 }
             }
-
-            //return Visit(context);
 
             if (context.number() != null)
             {
@@ -292,17 +285,15 @@ namespace CompilerModelTest.Visitors
         #region Statements
         public override ValueObjectDef VisitAssigment(ModelLParser.AssigmentContext context)
         {
-            Console.WriteLine("Assigment");
+            
             try
             {
-                //Console.WriteLine("\t" + context.identificator().GetText());
+               
                 var varible = varibles[context.identificator().GetText()];
                 var resultObject = VisitExpression(context.expression());
-                if (varible.Type != resultObject.Type && (varible.Type != typeof(double) && resultObject.Type != typeof(int)))
+                if ((varible.Type != resultObject.Type) || (varible.Type != typeof(double) && resultObject.Type != typeof(int)))
                 {
-                    Errors.Add(new IncompatibleTypesError(resultObject.Type.ToString(),varible.Type.ToString(),0,context.Start.Line,context.Start.Column));
-                    //Console.WriteLine("\t\tError: Varible type error: " + context.identificator().GetText());
-                    //add Error
+                    Errors.Add(new IncompatibleTypesError(resultObject.Type.ToString(),varible.Type.ToString(),0,context.Start.Line,context.Start.Column)); 
                 }
                 ValueObjectDef.EmitSaveToLocal(ValueObjectDef.GetLocalObjectDef(varible.Name).Number);
                 varible.IsDefine = true;
@@ -310,7 +301,6 @@ namespace CompilerModelTest.Visitors
             catch (KeyNotFoundException e)
             {
                 Errors.Add(new UndeclaredIdError(context.identificator().GetText(),0, context.Start.Line, context.Start.Column));
-                //Console.WriteLine("\t\tError: Varible not declared: " + context.identificator().GetText());
             }
             return new ValueObjectDef();
         }
@@ -346,7 +336,6 @@ namespace CompilerModelTest.Visitors
                 {
                     try
                     {
-                        //var varible = varibles[identificatorContext.GetText()];
                         CurrentILGenerator.EmitWriteLine("Read <-");
                         CurrentILGenerator.Emit(OpCodes.Call,
                             typeof(Console).GetMethod("ReadLine", BindingFlags.Public | BindingFlags.Static, null,
@@ -379,14 +368,12 @@ namespace CompilerModelTest.Visitors
                                 break;
                             }
                         }
-
                         ValueObjectDef.EmitSaveToLocal(localVar.Number);
                         varibles[identificatorContext.GetText()].IsDefine = true;
                     }
                     catch (KeyNotFoundException e)
                     {
                         Errors.Add(new UndeclaredIdError(identificatorContext.GetText(), 0, identificatorContext.Start.Line, identificatorContext.Start.Column));
-                        //Console.WriteLine("\t\tError: Varible not declared: " + identificatorContext.GetText());
                     }
                 }
             return new ValueObjectDef();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,10 +61,10 @@ namespace Compiler.UI
             //vocabulary = Vocabulary.FromTokenNames(lexer.TokenNames);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             
+            
+
             ModelLParser parser = new ModelLParser(tokens);
             IParseTree tree = parser.programm();
-
-            
             
             var astBuilder = new ProgrammAstBuilder();
             var programm = astBuilder.Visit(tree);
@@ -81,6 +82,44 @@ namespace Compiler.UI
 
             sntxTreeView.Items.Clear();
             FillLexerAndParserTables(programm, null);
+        }
+
+        public void CompileAndRun(object sender, RoutedEventArgs e)
+        {
+            Errors.Text = "";
+            string programmText = TextEditor.Text;
+            var stream = new AntlrInputStream(programmText);
+            Console.WriteLine(stream.ToString());
+            var lexer = new ModelLLexer(stream);
+            //vocabulary = Vocabulary.FromTokenNames(lexer.TokenNames);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+            ModelLParser parser = new ModelLParser(tokens);
+            IParseTree tree = parser.programm();
+
+
+
+            var astBuilder = new ProgrammAstBuilder();
+            var programm = astBuilder.Visit(tree);
+
+            ProgrammVisitor s = new ProgrammVisitor();
+            s.Visit(tree);
+
+            if (s.Errors.Count != 0)
+            {
+                foreach (var compileError in s.Errors)
+                {
+                    Errors.Text += compileError.Line + " :" + compileError.Description + "\n\r";
+                }
+            }
+
+            sntxTreeView.Items.Clear();
+            FillLexerAndParserTables(programm, null);
+
+            if (s.Errors.Count == 0)
+            {
+                Process.Start("test");
+            }
         }
 
         private void FillLexerAndParserTables(Node astTree, TreeViewItem parentTreeViewItem)
