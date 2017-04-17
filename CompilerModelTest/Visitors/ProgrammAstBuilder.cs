@@ -30,7 +30,7 @@ namespace CompilerModelTest.Visitors
         public override Node VisitDeclaration(ModelLParser.DeclarationContext context)
         {
             Node declaration = new DeclarationNode();
-
+            
             Node type = new TypeNode();
             type.Name = "type";
             type.Value = context.type.Text;

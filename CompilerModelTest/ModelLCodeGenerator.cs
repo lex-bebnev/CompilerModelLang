@@ -27,7 +27,6 @@ namespace CompilerModelTest
         #endregion
 
         #region Fields
-        protected ITree Tree;
 
         protected string ProgramName = "TestProgramm";
         protected string FileName;
@@ -51,7 +50,7 @@ namespace CompilerModelTest
 
         #endregion
 
-        public ModelLCodeGenerator(string modelLFileName, ITree tree)
+        public ModelLCodeGenerator(string modelLFileName)
         {
             WriteMethod = typeof(Console).GetMethod("WriteLine", BindingFlags.Public | BindingFlags.Static, null,
                 new Type[] { IntegerType}, null);
@@ -64,7 +63,6 @@ namespace CompilerModelTest
                 new Type[] { typeof(string) }, null);
 
             FileName = modelLFileName;
-            Tree = tree;
             ProgramName = Path.GetFileNameWithoutExtension(FileName);
         }
 

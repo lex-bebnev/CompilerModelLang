@@ -19,6 +19,8 @@ using Antlr4.Runtime.Tree;
 using CompilerModelTest;
 using CompilerModelTest.AntlrGrammar;
 using CompilerModelTest.ASTNodes;
+using CompilerModelTest.Errors;
+using CompilerModelTest.Errors.Listeners;
 using CompilerModelTest.Visitors;
 using ICSharpCode.AvalonEdit.Highlighting;
 
@@ -54,29 +56,49 @@ namespace Compiler.UI
         public void Compile(object sender, RoutedEventArgs e)
         {
             Errors.Text = "";
+            LexicalErrorListener.ClearErrors();
+            SyntaxErrorListener.ClearErrors();
             string programmText = TextEditor.Text;
             var stream = new AntlrInputStream(programmText);
             Console.WriteLine(stream.ToString());
             var lexer = new ModelLLexer(stream);
-            //vocabulary = Vocabulary.FromTokenNames(lexer.TokenNames);
+            lexer.RemoveErrorListeners();
+            lexer.AddErrorListener(LexicalErrorListener.INSTACE);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
-            
-            
 
+            ModelLParser syntaxErrorsChecker = new ModelLParser(tokens);
+            syntaxErrorsChecker.RemoveErrorListeners();
+            syntaxErrorsChecker.AddErrorListener(SyntaxErrorListener.INSTACE);
+            syntaxErrorsChecker.programm();
+            if (LexicalErrorListener.Errors.Count != 0)
+            {
+                foreach (SyntaxError syntaxError in LexicalErrorListener.Errors)
+                    Errors.Text += syntaxError.Line + " - " + syntaxError.Column + ": " + syntaxError.Message + "\n\r";
+                
+                if (SyntaxErrorListener.Errors.Count() != 0)
+                    foreach (SyntaxError syntaxError in SyntaxErrorListener.Errors)
+                        Errors.Text += syntaxError.Line + " - " + syntaxError.Column + ": " + syntaxError.Message + "\n\r";
+
+                return;
+            }
+
+            stream = new AntlrInputStream(programmText);
+            lexer = new ModelLLexer(stream);
+            tokens = new CommonTokenStream(lexer);
             ModelLParser parser = new ModelLParser(tokens);
             IParseTree tree = parser.programm();
             
             var astBuilder = new ProgrammAstBuilder();
             var programm = astBuilder.Visit(tree);
 
-            ProgrammVisitor s = new ProgrammVisitor();
+            ProgrammCodeGenerator s = new ProgrammCodeGenerator("NewVersion");
             s.Visit(tree);
 
             if (s.Errors.Count != 0)
             {
                 foreach (var compileError in s.Errors)
                 {
-                    Errors.Text += compileError.Line+" :" + compileError.Description +"\n\r";
+                    Errors.Text += compileError.Line+"-" + compileError.Column + " :" + compileError.Description +"\n\r";
                 }
             }
 

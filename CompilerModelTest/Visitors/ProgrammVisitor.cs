@@ -18,9 +18,6 @@ namespace CompilerModelTest.Visitors
 {
     public class ProgrammVisitor: ModelLBaseVisitor<ValueObjectDef>
     {
-        //readonly Dictionary<string,Type> variblesTypes = new Dictionary<string, Type>();
-        //readonly Dictionary<string,double> varibleValues = new Dictionary<string, double>();
-
         readonly Dictionary<string,ValueObjectDef> varibles = new Dictionary<string, ValueObjectDef>();
         protected ILGenerator CurrentILGenerator;
 
@@ -29,7 +26,7 @@ namespace CompilerModelTest.Visitors
 
         public override ValueObjectDef VisitProgramm(ModelLParser.ProgrammContext context)
         {
-            var gen = new ModelLCodeGenerator("test", context);
+            var gen = new ModelLCodeGenerator("test");
             gen.Generete();
             CurrentILGenerator = gen.EntryPoint.GetILGenerator();
             ValueObjectDef.Generator = CurrentILGenerator;
@@ -285,13 +282,11 @@ namespace CompilerModelTest.Visitors
         #region Statements
         public override ValueObjectDef VisitAssigment(ModelLParser.AssigmentContext context)
         {
-            
             try
             {
-               
                 var varible = varibles[context.identificator().GetText()];
                 var resultObject = VisitExpression(context.expression());
-                if ((varible.Type != resultObject.Type) || (varible.Type != typeof(double) && resultObject.Type != typeof(int)))
+                if ((varible.Type != resultObject.Type) && (varible.Type != typeof(double) && resultObject.Type != typeof(int)))
                 {
                     Errors.Add(new IncompatibleTypesError(resultObject.Type.ToString(),varible.Type.ToString(),0,context.Start.Line,context.Start.Column)); 
                 }

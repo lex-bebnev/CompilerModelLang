@@ -74,10 +74,13 @@
       <DependentUpon>ModelL.g4</DependentUpon>
     </Compile>
     <Compile Include="ASTNodes\ProgrammNode.cs" />
+    <Compile Include="Emitters\Emitter.cs" />
     <Compile Include="Errors\AlreadyDeclaredError.cs" />
     <Compile Include="Errors\CompileError.cs" />
     <Compile Include="Errors\IncompatibleTypesError.cs" />
+    <Compile Include="Errors\Listeners\LexicalErrorListener.cs" />
     <Compile Include="Errors\ResultTypeError.cs" />
+    <Compile Include="Errors\SyntaxError.cs" />
     <Compile Include="Errors\UndeclaredIdError.cs" />
     <Compile Include="Errors\UndefinedIdError.cs" />
     <Compile Include="ModelLCodeGenerator.cs" />
@@ -87,6 +90,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Visitors\ProgrammAstBuilder.cs" />
+    <Compile Include="Visitors\ProgrammCodeGenerator.cs" />
     <Compile Include="Visitors\ProgrammVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
