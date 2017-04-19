@@ -27,16 +27,16 @@ namespace CompilerModelTest.Errors.Listeners
         }
     }
 
-    public class SyntaxErrorListener: IAntlrErrorListener<IToken>
+    public class SyntaxErrorListener: BaseErrorListener
     {
-        public static IAntlrErrorListener<IToken> INSTACE = new SyntaxErrorListener();
+        public static BaseErrorListener INSTACE = new SyntaxErrorListener();
         public static List<SyntaxError> Errors;
 
         public SyntaxErrorListener()
         {
             Errors = new List<SyntaxError>();
         }
-        public void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
+        public override void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
         {
             Errors.Add(new SyntaxError(0, line, charPositionInLine, "Syntaxis error: " + msg));
         }

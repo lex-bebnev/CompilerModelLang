@@ -64,7 +64,8 @@ write	:	WRITE '(' expression (',' expression)* ')' ';'
 
 //---------Выражение-----------
 expression
-	:	  primary | unary primary
+	:	  primary 
+		| unary primary
 		| left=expression op=('*'|'/'|'and')		right=expression
 		| left=expression op=('+'|'-'|'or')			right=expression
 		| left=expression op=('<>'|'=')				right=expression 

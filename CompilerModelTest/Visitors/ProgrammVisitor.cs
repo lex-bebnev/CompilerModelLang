@@ -71,7 +71,7 @@ namespace CompilerModelTest.Visitors
             if (context.primary() != null)
             {
                 var resultObject = VisitPrimary(context.primary());
-                if (context.unary() == null) return resultObject;
+                //if (context.unary() == null) return resultObject;
 
                 if (resultObject.Type != typeof(bool))
                 {

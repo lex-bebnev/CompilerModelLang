@@ -70,18 +70,18 @@ namespace Compiler.UI
             syntaxErrorsChecker.RemoveErrorListeners();
             syntaxErrorsChecker.AddErrorListener(SyntaxErrorListener.INSTACE);
             syntaxErrorsChecker.programm();
-            if (LexicalErrorListener.Errors.Count != 0)
+            //Еще один костыль, знаю, если есть идеи как по другому, прошу пишите
+            if (LexicalErrorListener.Errors.Count != 0 || SyntaxErrorListener.Errors.Count() != 0)
             {
                 foreach (SyntaxError syntaxError in LexicalErrorListener.Errors)
-                    Errors.Text += syntaxError.Line + " - " + syntaxError.Column + ": " + syntaxError.Message + "\n\r";
-                
-                if (SyntaxErrorListener.Errors.Count() != 0)
-                    foreach (SyntaxError syntaxError in SyntaxErrorListener.Errors)
-                        Errors.Text += syntaxError.Line + " - " + syntaxError.Column + ": " + syntaxError.Message + "\n\r";
+                    Errors.Text += $"line {syntaxError.Line}:{syntaxError.Column}: {syntaxError.Message}\r\n";
+
+                foreach (SyntaxError syntaxError in SyntaxErrorListener.Errors)
+                    Errors.Text += $"line {syntaxError.Line}:{syntaxError.Column}: {syntaxError.Message}\r\n";
 
                 return;
             }
-
+            //Да, костыльно, но по другому не знаю как запустить, да и думать впадлу
             stream = new AntlrInputStream(programmText);
             lexer = new ModelLLexer(stream);
             tokens = new CommonTokenStream(lexer);
@@ -98,7 +98,7 @@ namespace Compiler.UI
             {
                 foreach (var compileError in s.Errors)
                 {
-                    Errors.Text += compileError.Line+"-" + compileError.Column + " :" + compileError.Description +"\n\r";
+                    Errors.Text += $"line {compileError.Line}:{compileError.Column}: {compileError.Description}\r\n"; //compileError.Line+"-" + compileError.Column + " :" + compileError.Description +"\n\r";
                 }
             }
 

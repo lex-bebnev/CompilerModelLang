@@ -84,6 +84,7 @@
     <Compile Include="Errors\UndeclaredIdError.cs" />
     <Compile Include="Errors\UndefinedIdError.cs" />
     <Compile Include="ModelLCodeGenerator.cs" />
+    <Compile Include="ObjectDefs\IdentificatorDef.cs" />
     <Compile Include="ObjectDefs\MethodDef.cs" />
     <Compile Include="ObjectDefs\ObjectDef.cs" />
     <Compile Include="ObjectDefs\ValueObjectDef.cs" />
