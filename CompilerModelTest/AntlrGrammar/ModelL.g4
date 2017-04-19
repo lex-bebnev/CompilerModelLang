@@ -50,7 +50,7 @@ assigment
 	;
 as	:	AS	
 	;	
-if	:	IF expression statement (ELSE statement)?
+if	:	IF expression then=statement (ELSE else=statement)?
 	;
 for	:	FOR assigment TO expression DO statement
 	;

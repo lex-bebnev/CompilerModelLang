@@ -16,9 +16,7 @@ namespace CompilerModelTest.Visitors
         public Dictionary<string, ObjectDef> LocalVaribles { get; private set; }
         public IList<CompileError> Errors { get; set; }
         private ILGenerator _iLGenerator;
-
         public string ProgrammName { get; private set; }
-
         //Это нужно, чтобы не писать метод подсчета уже имеющихся переменных
         private int _currentLocalVarNumber;
 
@@ -97,9 +95,8 @@ namespace CompilerModelTest.Visitors
 
             idObject.EmitSaveToLocal(_iLGenerator);
             idObject.Value = idValueObj.Value;
-            return null;
+            return idObject;
         }
-
         public override ObjectDef VisitExpression(ModelLParser.ExpressionContext context)
         {
             if (context.primary() != null)
@@ -130,6 +127,12 @@ namespace CompilerModelTest.Visitors
             }
 
             ObjectDef resultObj = OperateObjects(context.op?.Type,leftObj,rightObj);
+
+            if (resultObj == null)
+            {
+                Errors.Add(new CompileError(0, context.op?.Line, context.op?.Column) { Description = "Ошибка при попытке провести операцию" });
+                return null;
+            }
 
             switch (context.op?.Type)
             {
@@ -210,7 +213,6 @@ namespace CompilerModelTest.Visitors
             
             return null;
         }
-
 
         #region Values
         public override ObjectDef VisitInteger(ModelLParser.IntegerContext context)
@@ -304,23 +306,222 @@ namespace CompilerModelTest.Visitors
             Errors.Add(new UndeclaredIdError(idName, 0, context.Start.Line, context.Start.Column));
             return null;
         }
+        public override ObjectDef VisitWrite(ModelLParser.WriteContext context)
+        {
+            ModelLParser.ExpressionContext[] expressionContext = context.expression();
+            for (int i = 0; i < expressionContext.Length; i++)
+            {
+                ObjectDef resultObj = VisitExpression(expressionContext[i]);
+                if (resultObj == null)
+                {
+                    Errors.Add(new CompileError(0, expressionContext[i].start.Line, expressionContext[i].start.Column) {Description = "Expression result error"});
+                    continue;
+                }
 
+                _iLGenerator.Emit(OpCodes.Call, typeof(Console).GetMethod("Write", BindingFlags.Public | BindingFlags.Static, null,
+                                                                          new Type[] {resultObj.Type}, null));
+                if (i != expressionContext.Length - 1)
+                {
+                    _iLGenerator.Emit(OpCodes.Ldstr, ",");
+                    _iLGenerator.Emit(OpCodes.Call, typeof(Console).GetMethod("Write", BindingFlags.Public | BindingFlags.Static, null,
+                                                                              new Type[] { typeof(string) }, null));
+                }
+                else
+                {
+                    _iLGenerator.EmitWriteLine("");
+                }
+            }
+            return null;
+        }
+        public override ObjectDef VisitRead(ModelLParser.ReadContext context)
+        {
+            foreach (ModelLParser.IdentificatorContext identificatorContext in context.identificator())
+            {
+                ObjectDef idObj = VisitIdentificator(identificatorContext);
+                if (idObj == null)
+                {
+                    Errors.Add(new UndeclaredIdError(identificatorContext.GetText(), 0, identificatorContext.start.Line, identificatorContext.start.Column));
+                    continue;
+                }
+                _iLGenerator.Emit(OpCodes.Call,
+                                  typeof(Console).GetMethod("ReadLine", BindingFlags.Public | BindingFlags.Static, null,
+                                                            new Type[] { }, null));
+                switch (idObj.Type.Name)
+                {
+                    #region Parse Int
+                    case "Int32":
+                        _iLGenerator.Emit(OpCodes.Call,typeof(ProgrammCodeGenerator).GetMethod("ParseInteger",BindingFlags.Public | BindingFlags.Static,null,new Type[] {typeof(string)},null));
+                        break;
+                    #endregion 
+                    
+                    #region Read Double
+                    case "Double":
+                        _iLGenerator.Emit(OpCodes.Call,
+                                          typeof(double).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static, null,
+                                                                   new Type[] {typeof(string)}, null));
+                        break;
+                    #endregion
+                    
+                    #region Read Bool
+                    case "Boolean":
+                        _iLGenerator.Emit(OpCodes.Call,
+                                          typeof(bool).GetMethod("Parse", BindingFlags.Public | BindingFlags.Static, null,
+                                                                 new Type[] {typeof(string)}, null));
+                        break;
+                    #endregion
 
+                    default:
+                        Errors.Add(new CompileError(0,identificatorContext.start.Line, identificatorContext.start.Column) {Description = "Can't read identificator"});
+                        return null;
+                }
+                idObj.EmitSaveToLocal(_iLGenerator);
+            }
+            return null;
+        }
+        public override ObjectDef VisitFor(ModelLParser.ForContext context)
+        {
+            ObjectDef forObj = VisitAssigment(context.assigment());
+            if (forObj == null)
+            {
+                Errors.Add(new CompileError(0,context.assigment().start.Line, context.assigment().start.Column) {Description = "@for assigment error"});
+                return null;
+            }
+
+            Label checkLabel = _iLGenerator.DefineLabel();
+            _iLGenerator.MarkLabel(checkLabel);
+
+            ObjectDef toObj = VisitExpression(context.expression());
+            if (toObj == null)
+            {
+                Errors.Add(new CompileError(0, context.expression().start.Line, context.expression().start.Column) { Description = "@to expression error" });
+                return null;
+            }
+
+            if (toObj.Type != typeof(bool))
+            {
+                Errors.Add(new ResultTypeError("boolean", toObj.Type.ToString(), 0, context.expression().start.Line, context.expression().start.Column));
+                return null;
+            }
+
+            Label exitLabel = _iLGenerator.DefineLabel();
+            _iLGenerator.Emit(OpCodes.Brtrue,exitLabel);
+
+            Visit(context.statement());
+            _iLGenerator.Emit(OpCodes.Br, checkLabel);
+            _iLGenerator.MarkLabel(exitLabel);
+
+            return null;
+        }
+        public override ObjectDef VisitWhile(ModelLParser.WhileContext context)
+        {
+            Label checkLabel = _iLGenerator.DefineLabel();
+            _iLGenerator.MarkLabel(checkLabel);
+
+            ObjectDef whileObj = VisitExpression(context.expression());
+            if (whileObj == null)
+            {
+                Errors.Add(new CompileError(0,context.expression().start.Line, context.expression().start.Column) {Description = "@while expression error"});
+                return null;
+            }
+            if (whileObj.Type != typeof(bool))
+            {
+                Errors.Add(new ResultTypeError(typeof(bool).ToString(),whileObj.Type.ToString(),0, context.expression().start.Line, context.expression().start.Column));
+                return null;
+            }
+
+            Label exitLabel = _iLGenerator.DefineLabel();
+            _iLGenerator.Emit(OpCodes.Brfalse, exitLabel);
+
+            Visit(context.statement());
+            _iLGenerator.Emit(OpCodes.Br, checkLabel);
+            _iLGenerator.MarkLabel(exitLabel);
+
+            return null;
+        }
+
+        public override ObjectDef VisitIf(ModelLParser.IfContext context)
+        {
+            ObjectDef ifObj = VisitExpression(context.expression());
+            if (ifObj == null)
+            {
+                Errors.Add(new CompileError(0, context.expression().start.Line, context.expression().start.Column) { Description = "@if expression error" });
+                return null;
+            }
+            if (ifObj.Type != typeof(bool))
+            {
+                Errors.Add(new ResultTypeError(typeof(bool).ToString(), ifObj.Type.ToString(), 0, context.expression().start.Line, context.expression().start.Column));
+                return null;
+            }
+            Label elseLabel = _iLGenerator.DefineLabel();
+            Label exitLabel = _iLGenerator.DefineLabel();
+
+            _iLGenerator.Emit(OpCodes.Brfalse, elseLabel);
+
+            Visit(context.then);
+            _iLGenerator.Emit(OpCodes.Br, exitLabel);
+            _iLGenerator.MarkLabel(elseLabel);
+            if (context.@else != null) Visit(context.@else);
+            
+            _iLGenerator.MarkLabel(exitLabel);
+
+            return null;
+        }
+
+        #region SystemMethods
+        public static int ParseInteger(string parseString)
+        {
+            Regex decRegex = new Regex("\\b\\d{1,}[d,D]{0,}\\b");
+            Regex hexRegex = new Regex("\\b\\d[0-9A-Fa-f]*[h,H]\\b");
+            Regex octRegex = new Regex("\\b[0-7]+[o,O]\\b");
+            Regex binRegex = new Regex("\\b[0-1]+[b,B]\\b");
+
+            if (hexRegex.IsMatch(parseString))
+                return int.Parse(parseString.Trim(new[] { 'h', 'H' }), NumberStyles.HexNumber);
+            
+            if (decRegex.IsMatch(parseString))
+                return int.Parse(parseString.Trim(new[] { 'd', 'D' }));
+            
+            if (octRegex.IsMatch(parseString))
+                return Convert.ToInt32(parseString.Trim(new[] { 'o', 'O' }), 8);
+            
+            if (binRegex.IsMatch(parseString))
+                return Convert.ToInt32(parseString.Trim(new[] { 'b', 'B' }), 2);
+            
+
+            throw new Exception("Unnable to parse integer number: "+ parseString);
+        }
         private ObjectDef OperateObjects(int? opType, ObjectDef obj1, ObjectDef obj2)
         {
             ObjectDef result = new ObjectDef();
             switch (opType)
             {
                 case ModelLLexer.ADD:
-                    result.Type = typeof(double);
+                    if (obj1.Type == typeof(bool) || obj2.Type == typeof(bool))
+                        return null;
+                    if(obj1.Type==typeof(double) || obj2.Type== typeof(double))
+                        result.Type = typeof(double);
+                    if (obj1.Type == typeof(int) || obj2.Type == typeof(int))
+                        result.Type = typeof(int);
                     break;
                 case ModelLLexer.SUB:
-                    result.Type = typeof(double);
+                    if (obj1.Type == typeof(bool) || obj2.Type == typeof(bool))
+                        return null;
+                    if (obj1.Type == typeof(double) || obj2.Type == typeof(double))
+                        result.Type = typeof(double);
+                    if (obj1.Type == typeof(int) || obj2.Type == typeof(int))
+                        result.Type = typeof(int);
                     break;
                 case ModelLLexer.MUL:
-                    result.Type = typeof(double);
+                    if (obj1.Type == typeof(bool) || obj2.Type == typeof(bool))
+                        return null;
+                    if (obj1.Type == typeof(double) || obj2.Type == typeof(double))
+                        result.Type = typeof(double);
+                    if (obj1.Type == typeof(int) && obj2.Type == typeof(int))
+                        result.Type = typeof(int);
                     break;
                 case ModelLLexer.DIV:
+                    if (obj1.Type == typeof(bool) || obj2.Type == typeof(bool))
+                        return null;
                     result.Type = typeof(double);
                     break;
                 case ModelLLexer.AND:
@@ -347,7 +548,7 @@ namespace CompilerModelTest.Visitors
                 case ModelLLexer.LE:
                     result.Type = typeof(bool);
                     break;
-                case null: break;
+                default: return null;
             }
             return result;
         }
@@ -365,5 +566,6 @@ namespace CompilerModelTest.Visitors
                     return typeof(int);
             }
         }
+        #endregion
     }
 }
