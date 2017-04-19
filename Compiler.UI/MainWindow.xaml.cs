@@ -52,7 +52,6 @@ namespace Compiler.UI
 
         private IVocabulary vocabulary;
 
-
         public void Compile(object sender, RoutedEventArgs e)
         {
             Errors.Text = "";
@@ -108,40 +107,9 @@ namespace Compiler.UI
 
         public void CompileAndRun(object sender, RoutedEventArgs e)
         {
-            Errors.Text = "";
-            string programmText = TextEditor.Text;
-            var stream = new AntlrInputStream(programmText);
-            Console.WriteLine(stream.ToString());
-            var lexer = new ModelLLexer(stream);
-            //vocabulary = Vocabulary.FromTokenNames(lexer.TokenNames);
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-            ModelLParser parser = new ModelLParser(tokens);
-            IParseTree tree = parser.programm();
-
-
-
-            var astBuilder = new ProgrammAstBuilder();
-            var programm = astBuilder.Visit(tree);
-
-            ProgrammVisitor s = new ProgrammVisitor();
-            s.Visit(tree);
-
-            if (s.Errors.Count != 0)
-            {
-                foreach (var compileError in s.Errors)
-                {
-                    Errors.Text += compileError.Line + " :" + compileError.Description + "\n\r";
-                }
-            }
-
-            sntxTreeView.Items.Clear();
-            FillLexerAndParserTables(programm, null);
-
-            if (s.Errors.Count == 0)
-            {
-                Process.Start("test");
-            }
+            Compile(sender, e);
+            if(string.IsNullOrEmpty(Errors.Text))
+                Process.Start("NewVersion");
         }
 
         private void FillLexerAndParserTables(Node astTree, TreeViewItem parentTreeViewItem)
